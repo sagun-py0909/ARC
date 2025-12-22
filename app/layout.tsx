@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-black text-white antialiased m-0 min-h-screen">
         <StoreProvider>
           <App>{children}</App>
         </StoreProvider>
