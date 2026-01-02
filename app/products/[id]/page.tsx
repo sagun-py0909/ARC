@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { PRODUCTS, Product } from '@/data/products';
+import { Product } from '@/data/products';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/store/StoreContext';
 import Link from 'next/link';
@@ -11,20 +11,25 @@ import { Float } from '@react-three/drei';
 import { ChillPodModel } from '@/components/3d/ChillPodModel';
 import { Scene } from '@/components/3d/Scene';
 import useMounted from '@/hooks/useMounted';
+import { getProduct } from '@/lib/get-products';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const { addToCart } = useStore();
-  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const mounted = useMounted();
 
   useEffect(() => {
-    if (params.id) {
-      const foundProduct = PRODUCTS.find(p => p.id === parseInt(params.id as string));
-      setProduct(foundProduct);
+    async function load() {
+        if (params.id) {
+            // params.id is string from URL
+            const foundProduct = await getProduct(params.id as string);
+            setProduct(foundProduct);
+        }
+        setLoading(false);
     }
-    setLoading(false);
+    load();
   }, [params.id]);
 
   if (loading) {
@@ -70,7 +75,20 @@ export default function ProductDetailPage() {
           <div>
             <h1 className="text-4xl font-bold tracking-tighter mb-4">{product.name}</h1>
             <p className="text-gray-400 text-lg mb-6">{product.description}</p>
+            {/* Display Tagline if available */}
+            {product.tagline && <p className="text-blue-400 text-md mb-4 italic">{product.tagline}</p>}
+
             <span className="text-4xl font-bold mb-6 block">${product.price.toLocaleString()}</span>
+
+            {/* Features List */}
+            {product.features && product.features.length > 0 && (
+                <ul className="mb-6 list-disc list-inside text-gray-300">
+                    {product.features.map((feature, idx) => (
+                        <li key={idx}>{feature}</li>
+                    ))}
+                </ul>
+            )}
+
             <div className="flex gap-4">
               <Button primary onClick={() => addToCart(product)}>Add to Cart</Button>
               <Link href="/products">
